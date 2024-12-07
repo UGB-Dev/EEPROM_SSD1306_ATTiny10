@@ -28,13 +28,14 @@ int main(void){
 	OLED_init(); // inicializa el OLED
 	OLED_clear(); // limpia pantalla
 	while (1){
-		OLED_cursor(30, 0); // se posiciona en columna=30; pagina=0
-		Print_OLED("HOLA MUNDO"); // se imprime el string
-		_delay_ms(500);
-		OLED_cursor(10, 3);// se posiciona en columna=10; pagina=3
-		Print_OLED("ESTO ES UNA PRUEBA"); // se imprime el string
-		_delay_ms(500);
-		OLED_clear(); // limpia pantalla
+		CONTEO_0_99();
+		/*OLED_cursor(0,3);
+		Print_OLED("HOLA MUNDO");*/
+		//_delay_ms(500);
+		//OLED_cursor(0, 3);// se posiciona en columna=10; pagina=3
+		//Print_OLED("ESTO ES UNA PRUEBA DE FUNCIONAMIENTO"); // se imprime el string
+		//_delay_ms(500);
+		//OLED_clear(); // limpia pantalla
 	}
 }
 

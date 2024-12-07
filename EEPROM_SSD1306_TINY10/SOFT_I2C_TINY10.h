@@ -4,11 +4,11 @@
 	
 */
 
-/*			  ______
+/*            ______
 	   PB0 __| O	|___ PB3
 	   GND __|		|___ VCC
 (SDA)  PB1 __|		|___ PB2  (SCL)
-			 |______|
+             |______|
 	
 */
 
@@ -16,6 +16,7 @@
 ////////////////////  VELOCIDAD DEL PROTOCOLO  ////////////////////
 
 #define CLK_I2C (( F_CPU / (2*50000 ))-1) //100 KHz en SCL // tiempo de bit a 10us
+#define Time_HL ((CLK_I2C*68)/100)
 
 ///////////////////////////////////////////////////////////////////
 //////////////////  ETIQUETAS PARA LOS PINES  /////////////////////
@@ -37,12 +38,12 @@ volatile uint8_t Byte_contador; // variable para recorrer bit a bit
 ///////////////////////////////////////////////////////////////////
 ////////////////////  FUNCIONES PROTOTIPO  ////////////////////////
 
-void Set_FCPU_8MHz(); // ajusta la frecuencia a 13 MHz aprox
-void config_PWM_COMPA(); // configura el modo CTC por comparacion A
-void config_PWM_COMPB(); // configura el modo CTC por comparacion B
-void reset_PWM_(); // deshabilita el modo CTC
-void inicio_Trama(); 
-void fin_Trama();
+void Set_FCPU_8MHz(void); // ajusta la frecuencia a 13 MHz aprox
+void config_PWM_COMPA(void); // configura el modo CTC por comparacion A
+void config_PWM_COMPB(void); // configura el modo CTC por comparacion B
+void reset_PWM_(void); // deshabilita el modo CTC
+void inicio_Trama(void); 
+void fin_Trama(void);
 void Enviar_Dato(uint8_t Byte);
 uint8_t leer(bool ACK);
 

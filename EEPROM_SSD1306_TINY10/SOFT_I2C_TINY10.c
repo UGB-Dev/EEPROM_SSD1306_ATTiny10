@@ -40,30 +40,36 @@ void reset_PWM_(){
 
 void inicio_Trama(){
 	SDA_ON;		// PB1(SDA) a "1" logico
-	_delay_us(1.25);
+	//_delay_us(1.25);
 	SCL_ON;		// PB2(SCL) a "1" logico
-	_delay_us(1.25);
+	_delay_us(0.25); // sin comentar para tolerancia baja
 	SDA_OFF;	// PB1(SDA) a "0" logico
-	_delay_us(5);
+	//_delay_us(5);
 	SCL_OFF;	// PB2(SCL) a "0" logico
 }
 
 void fin_Trama(){
 	SDA_OFF;	// PB1(SDA) a "0" logico
 	SCL_ON;		// PB2(SCL) a "1" logico
-	_delay_us(5);
+	//_delay_us(5);
 	SDA_ON;		// PB1(SDA) a "1" logico
-	_delay_us(2.5);
+	//_delay_us(2.5);
 }
 
 ///////////////////////////////////////////////////////////////////
 ////////////////   ENVIO Y RECEPCION DE DATOS  ////////////////////
 
 void Enviar_Dato(uint8_t Byte){
+	//uint8_t tim=0;
 	config_PWM_COMPA(); // configura el modo CTC por comparacion A
 	Byte_copia=Byte; // realiza una copia del dato
 	Byte_contador=1; // se inicializa el contador
-	while(Byte_contador); // mantenemos hasta recibir el ACK
+	while(Byte_contador){ // mantenemos hasta recibir el ACK
+		if (TCNT0>Time_HL){
+			if(Byte_contador==10){	SCL_OFF; Byte_contador=0;	}
+			else{	SCL_OFF;	}	
+		}
+	}
 	reset_PWM_(); // deshabilita el modo CTC
 }
 
@@ -73,7 +79,12 @@ uint8_t leer(bool ACK){
 	Byte_copia = 0; // se inicializa Byte_copia 
 	Byte_contador = 1; // se inicializa el contador
 	SDA_ON; // pin PB1(SDA) como entrada
-	while(Byte_contador); // mantenemos hasta enviar el NACK
+	while(Byte_contador){ // mantenemos hasta enviar el NACK
+		if (TCNT0 > Time_HL){
+			if(Byte_contador==10){	SCL_OFF; Byte_contador=0;	}
+			else{	SCL_OFF;	}
+		}	
+	}
 	reset_PWM_(); // deshabilita el modo CTC
 	return Byte_copia; // retorna el valor de Byte_copia
 }
@@ -86,17 +97,17 @@ ISR(TIM0_COMPA_vect){ // rutina para envio de datos
 		case 1 ... 8: // envia el valor logico de cada bit
 			if (Byte_copia & 0x80){ // si el valor del bit presente es 1
 				SDA_ON;		// PB1(SDA) a "1" logico
-				_delay_us(1.5);
+				//_delay_us(1.5);
 				SCL_ON;		// PB2(SCL) a "1" logico
-				_delay_us(5);
-				SCL_OFF;	// PB2(SCL) a "0" logico
+				//_delay_us(5);
+				//SCL_OFF;	// PB2(SCL) a "0" logico
 			}
 			else{ // de lo contrario (bit presente es 0)
 				SDA_OFF;	// PB1(SDA) a "0" logico
-				_delay_us(1.5);
+				//_delay_us(1.5);
 				SCL_ON;		// PB2(SCL) a "1" logico
-				_delay_us(5);
-				SCL_OFF;	// PB2(SCL) a "0" logico
+				//_delay_us(5);
+				//SCL_OFF;	// PB2(SCL) a "0" logico
 			}
 			
 			Byte_copia <<= 1; // recorre el byte actual hacia la izquierda una posicion
@@ -106,12 +117,13 @@ ISR(TIM0_COMPA_vect){ // rutina para envio de datos
 		case 9: // recepcion del "ACK"
 			SDA_ON; // pin PB1(SDA) como entrada
 			while ( PINB & (1<<PINB1)); // mantenemos hasta recibir el ACK en PB1(SDA) 
-			_delay_us(1.5);
+			Byte_contador++; // incrementa Byte_contador
+			//_delay_us(1.5);
 			SCL_ON;		// PB2(SCL) a "1" logico
-			Byte_contador = 0;	// se asigna 0 al contador para salir de la funcion enviar
+			/*Byte_contador = 0;	// se asigna 0 al contador para salir de la funcion enviar
 			_delay_us(5);
 			SCL_OFF;	// PB2(SCL) a "0" logico
-			SDA_OFF;	// PB1(SDA) a "0" logico
+			SDA_OFF;	// PB1(SDA) a "0" logico*/
 			break;
 	}
 }
@@ -120,13 +132,13 @@ ISR(TIM0_COMPA_vect){ // rutina para envio de datos
 ISR(TIM0_COMPB_vect){ // rutina para recepcion de datos
 	switch(Byte_contador){
 		case 1 ... 8: // registra el valor logico para cada bit
-			_delay_us(1);
+			//_delay_us(1);
 			SCL_ON;		// PB2(SCL) a "1" logico
 			if (PINB & (1<<PINB1)){ // si en PB1(SDA) es "1" logico
 				Byte_copia |= (1 << (8-Byte_contador)); // almacena el bit desde MSB a LSB
 			}
-			_delay_us(8);
-			SCL_OFF;	// PB2(SCL) a "0" logico
+			//_delay_us(8);
+			//SCL_OFF;	// PB2(SCL) a "0" logico
 			Byte_contador++; // incrementa Byte_contador
 			break;
 		
@@ -137,11 +149,12 @@ ISR(TIM0_COMPB_vect){ // rutina para recepcion de datos
 			else{ // envia NACK 
 				SDA_ON; 
 			}
-			_delay_us(1);
+			//_delay_us(1);
 			SCL_ON;		// PB2(SCL) a "1" logico
-			_delay_us(8);
-			Byte_contador = 0; // se asigna 0 al contador para salir de la funcion enviar
-			SCL_OFF;	// PB2(SCL) a "0" logico
+			//_delay_us(8);
+			Byte_contador++; // incrementa Byte_contador
+			//Byte_contador = 0; // se asigna 0 al contador para salir de la funcion enviar
+			//SCL_OFF;	// PB2(SCL) a "0" logico
 			break;
 	}
 }

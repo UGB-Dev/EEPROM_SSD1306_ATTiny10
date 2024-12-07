@@ -43,8 +43,8 @@ void OLED_clear(){
 
 /*
 	estructura del registro del tipo de letra:
-													ascii	|	EEPROM	
-	dat1, dat2, dat3, dat4, dat5, dat6,		// space (32)	|	29 a 34	
+                                                   ascii	|	EEPROM	
+	dat1, dat2, dat3, dat4, dat5, dat6,	    // space (32)	|	29 a 34	
 	dat7, dat8, dat9, dat10, dat11, dat12,	// ..... (33)	|	35 a 40
 	datn,'''''''''''''''''''''''''''''''',	// ..... (34)	|	41 a 47
 	 '''''''''''''''''''''''''''''''''''',	''''''''''''	|	48 a 53
@@ -76,4 +76,28 @@ void OLED_cursor(uint8_t xpos, uint8_t ypos){
 	Enviar_Dato(0x10 | (xpos >> 4)); // nibble alto para posicionarse en la columna
 	Enviar_Dato(0xB0 | (ypos & 0x07)); // byte para posicionarse en la pagina (0 a 7)
 	fin_Trama();
+}
+
+void CONTEO_0_99(){
+	uint8_t  aux;
+	for (uint8_t i=0; i<255; i++){
+		OLED_cursor(0, 2);
+		Print_OLED("CUENTA: ");
+		aux=i;
+		imprimir_num((aux/100) +16);
+		aux%=100;
+		imprimir_num((aux/10) +16);
+		imprimir_num((aux%10)+16);
+		//_delay_ms(50);
+		//OLED_clear();
+	}
+}
+
+void imprimir_num(uint8_t dat){
+	for (uint8_t j=0; j<6; j++){
+		Leer_Registro(dat*6+j+29); // se obtiene el dato del registro x de la eeprom
+		Dato_(); // inicio de trama para enviar datos al OLED
+		Enviar_Dato(Dato_EEPROM);
+		fin_Trama();
+	}
 }
